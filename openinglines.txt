@@ -15,7 +15,7 @@ Horwitz |  | e4 e6 b3 d5 Bb2 dxe4 Nc3 Nf6 Qe2 Be7 Nxe4 O-O O-O-O
 Horwitz |  | e4 e6 b3 d5 Bb2 dxe4 Nc3 Nf6 Qe2 Bb4 O-O-O Bxc3 dxc3 Qe7 g4 h6 h3
 Horwitz |  | e4 e6 b3 d5 Bb2 dxe4 Nc3 f5 Nxe4 fxe4 Qh5 g6 Qe5
 Horwitz |  | e4 e6 b3 d5 Bb2 dxe4 Nc3 f5 Nxe4 fxe4 Qh5 Kd7 O-O-O
-Caro Kann |  | e4 c6 d4 d5 Bd3 Nf6 e5 Nfd7 e6 fxe6 Qh5
+Caro Kann | fast mate | e4 c6 d4 d5 Bd3 Nf6 e5 Nfd7 e6 fxe6 Qh5
 
 As Black
 
