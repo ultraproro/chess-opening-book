@@ -1,6 +1,6 @@
 As White
 
-Vienna Gambit | takes 1 | e4 e5 Nc3 Nf6 f4 exf4 e5 Ng8 Nf3 d6 d4 dxe5 Bb5+ c6 Bc4 exd4 Bxf4 Qe7+ Ne5
+Vienna Gambit | takes 1 | e4 e5 Nc3 Nf6 f4 exf4 [Blunder by black] e5 Ng8 Nf3 d6 d4 dxe5 Bb5 c6 Bc4 exd4 Bxf4 Qe7 Ne5
 Vienna Gambit | takes 2 | e4 e5 Nc3 Nf6 f4 exf4 e5 Ng8 Nf3 d6 d4 dxe5 Bb5+ c6 Bc4 exd4 Bxf4 dxc3 Bxf7+
 Vienna Gambit | Correct reply | e4 e5 Nc3 Nf6 f4 d5 fxe5 Nxe4 Qf3
 Vienna Gambit | Main line 1 | e4 e5 Nc3 Nc6 f4 exf4 Nf3 Nf6 Bc4
