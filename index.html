@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.390</title>
+<title>Chess Openings Survivor — v1.391</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -353,7 +353,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.390</h1>
+  <h1>Chess Openings Survivor — v1.391</h1>
 
 
 
@@ -992,13 +992,13 @@ try{
     // orient board to chosen recording side for comfort
     if(ground){
       // Click on board to dismiss wrong-move overlay
-  document.addEventListener('pointerup', function(){
-    if(waitingForClickAfterWrong){
-      waitingForClickAfterWrong = false;
-      if(ground) ground.set({ drawable: { autoShapes: [] } });
-      hideBanner();
-      startRun();
-    }
+  const wrongMoveOverlay = document.getElementById('wrongMoveOverlay');
+  wrongMoveOverlay && wrongMoveOverlay.addEventListener('click', function(){
+    wrongMoveOverlay.style.display = 'none';
+    waitingForClickAfterWrong = false;
+    if(ground) ground.set({ drawable: { autoShapes: [] } });
+    hideBanner();
+    startRun();
   });
 
   ground.set({ orientation: recSide });
@@ -1576,15 +1576,22 @@ function piecesMapFromBoard(){
     const legal = legalMovesAt(node);    if(!legal.includes(san)) {
       flashBoard('red');
       score.streak=0; streakEl.textContent='0'; saveScore(score);
-      // Show green arrow(s) for correct book move(s), pause until board click
+      // Reset board visually to pre-move state, keeping lastMove highlight (yellow squares)
       const shapes = [];
       for(const correctSan of legal){
         const sq = sanToSquares(correctSan);
         if(sq) shapes.push({ orig: sq.from, dest: sq.to, brush: 'green' });
       }
-      if(ground) ground.set({ movable: { color: 'none' }, drawable: { autoShapes: shapes } });
-      showBanner('fail','Wrong move — click board to continue','Book: '+(legal.join(', ')||'(none)'));
+      // Set board back to current position (before wrong move) but keep lastMove for yellow squares
+      ground.set({
+        pieces: piecesMapFromBoard(),
+        lastMove: [from, to],
+        movable: { color: 'none', dests: new Map() },
+        drawable: { autoShapes: shapes }
+      });
+      showBanner('fail','Wrong move — tap board to continue','Book: '+(legal.join(', ')||'(none)'));
       waitingForClickAfterWrong = true;
+      if(wrongMoveOverlay) wrongMoveOverlay.style.display = 'block';
       return;
     }
     applySAN(san);
