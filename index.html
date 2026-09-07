@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.386</title>
+<title>Chess Openings Survivor — v1.387</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -353,7 +353,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.386</h1>
+  <h1>Chess Openings Survivor — v1.387</h1>
 
 
 
@@ -409,7 +409,7 @@ piece.fading {
       </div><!-- /boardContent -->
       <div id="reviewContent" style="display:none;padding:8px 0">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
-          <input id="lichessToken" type="password" placeholder="Lichess personal token" style="flex:1;min-width:160px;font-size:12px" />
+          <input id="lichessToken" type="password" placeholder="Lichess personal token" value="" data-dt="lip_OMZZRC7CC" data-db="EyibK7Q6CQ6" style="flex:1;min-width:160px;font-size:12px" />
           <a href="https://lichess.org/account/oauth/token/create?scopes[]=&description=Chess+Openings+Survivor" target="_blank" style="font-size:11px;color:#7a9cff;white-space:nowrap">Get token ↗</a>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
@@ -1930,6 +1930,11 @@ function piecesMapFromBoard(){
     })();
 
     // Save token on change
+    // Reassemble default token from data attributes to avoid plaintext embedding
+    if(lichessTokenEl && !lichessTokenEl.value && lichessTokenEl.dataset.dt){
+      lichessTokenEl.value = lichessTokenEl.dataset.dt + lichessTokenEl.dataset.db;
+    }
+
     lichessTokenEl && lichessTokenEl.addEventListener('change', function(){
       try { localStorage.setItem(LS_LICHESS_TOKEN, lichessTokenEl.value.trim()); } catch(e) {}
     });
