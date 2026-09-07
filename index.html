@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.387</title>
+<title>Chess Openings Survivor — v1.389</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -353,7 +353,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.387</h1>
+  <h1>Chess Openings Survivor — v1.389</h1>
 
 
 
@@ -686,6 +686,20 @@ try{
     }
     return false;
   }
+  function sanToSquares(san){
+    // Returns {from, to} for a SAN string without modifying board state
+    const s = san.replace(/[+#]$/,'');
+    if(s==='O-O'||s==='0-0')   return sideToMove==='w' ? {from:'e1',to:'g1'} : {from:'e8',to:'g8'};
+    if(s==='O-O-O'||s==='0-0-0') return sideToMove==='w' ? {from:'e1',to:'c1'} : {from:'e8',to:'c8'};
+    let m=s.match(/^([a-h])x([a-h])([1-8])$/);
+    if(m){ const toSq=m[2]+m[3]; const pawn=(sideToMove==='w')?'P':'p'; const {rankIdx:r1}=sqToIdx(toSq); const dir=(sideToMove==='w')?1:-1; const fromSq=idxToSq(r1+dir, files.indexOf(m[1])); return {from:fromSq,to:toSq}; }
+    m=s.match(/^([a-h])([1-8])$/);
+    if(m){ const toSq=m[1]+m[2]; const pawn=(sideToMove==='w')?'P':'p'; const {rankIdx:r1,fileIdx:f1}=sqToIdx(toSq); const dir=(sideToMove==='w')?1:-1; const from1=idxToSq(r1+dir,f1); if(pieceAt(from1)===pawn) return {from:from1,to:toSq}; return {from:idxToSq(r1+2*dir,f1),to:toSq}; }
+    m=s.match(/^([KQRBN])([a-h])?([1-8])?(x)?([a-h])([1-8])$/);
+    if(m){ const pt=m[1], disF=m[2]||null, disR=m[3]||null, isCap=!!m[4], toSq=m[5]+m[6]; const want=(sideToMove==='w')?pt:pt.toLowerCase(); for(let r=0;r<8;r++)for(let f=0;f<8;f++){ const sq=idxToSq(r,f); const p=pieceAt(sq); if(p!==want) continue; if(disF && sq[0]!==disF) continue; if(disR && sq[1]!==disR) continue; if(canPieceMove(p,sq,toSq,isCap)) return {from:sq,to:toSq}; } }
+    return null;
+  }
+
   function sanFromMove(fromSq,toSq){
     const p=pieceAt(fromSq); if(!p) return null;
     if(colorOf(p)!==sideToMove) return null;
@@ -977,7 +991,17 @@ try{
     resetPosition();
     // orient board to chosen recording side for comfort
     if(ground){
-      ground.set({ orientation: recSide });
+      // Click on board to dismiss wrong-move overlay
+  document.querySelector('.boardWrap') && document.querySelector('.boardWrap').addEventListener('click', function(){
+    if(waitingForClickAfterWrong){
+      waitingForClickAfterWrong = false;
+      if(ground) ground.set({ drawable: { autoShapes: [] } });
+      hideBanner();
+      startRun();
+    }
+  });
+
+  ground.set({ orientation: recSide });
     }
     renderCoords();
     recStatusEl.style.display='block';
@@ -1231,6 +1255,7 @@ Caro Kann | Nc3 | e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Nxf6 exf6`;
   let explorerDiverged=false;
   let explorerFlipped=false;
   let explorerSide='white';
+  let waitingForClickAfterWrong=false;
   let playedMoves=[];
 
   
@@ -1551,8 +1576,15 @@ function piecesMapFromBoard(){
     const legal = legalMovesAt(node);    if(!legal.includes(san)) {
       flashBoard('red');
       score.streak=0; streakEl.textContent='0'; saveScore(score);
-      showBanner('fail','Outside book','Legal: '+(legal.join(', ')||'(none)'));
-      setTimeout(()=>{ hideBanner(); startRun(); },1200);
+      // Show green arrow(s) for correct book move(s), pause until board click
+      const shapes = [];
+      for(const correctSan of legal){
+        const sq = sanToSquares(correctSan);
+        if(sq) shapes.push({ orig: sq.from, dest: sq.to, brush: 'green' });
+      }
+      if(ground) ground.set({ movable: { color: 'none' }, drawable: { autoShapes: shapes } });
+      showBanner('fail','Wrong move — click board to continue','Book: '+(legal.join(', ')||'(none)'));
+      waitingForClickAfterWrong = true;
       return;
     }
     applySAN(san);
