@@ -1,4 +1,4 @@
-const CACHE = 'chess-openings-v1.387';
+const CACHE = 'chess-openings-v1.389';
 const APP_FILES = [
   '/chess-opening-book/index.html',
   '/chess-opening-book/manifest.json'
