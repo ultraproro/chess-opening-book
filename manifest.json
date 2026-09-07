@@ -1,0 +1,15 @@
+{
+  "name": "Chess Openings Survivor",
+  "short_name": "Chess Openings",
+  "description": "Chess opening trainer and repertoire manager",
+  "start_url": "/chess-opening-book/index.html",
+  "scope": "/chess-opening-book/",
+  "display": "standalone",
+  "background_color": "#0b0e2a",
+  "theme_color": "#0b0e2a",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
