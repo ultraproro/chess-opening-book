@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.393</title>
+<title>Chess Openings Survivor — v1.394</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -353,7 +353,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.393</h1>
+  <h1>Chess Openings Survivor — v1.394</h1>
 
 
 
@@ -1860,7 +1860,10 @@ function piecesMapFromBoard(){
       return pct + '%';
     }
 
-    function explorerLink(fen){
+    function explorerLink(fen, plies){
+      if(plies && plies.length){
+        return 'https://lichess.org/analysis/pgn/' + plies.join('_');
+      }
       return 'https://lichess.org/analysis?fen=' + fen.replace(/ /g, '%20');
     }
 
@@ -1902,7 +1905,7 @@ function piecesMapFromBoard(){
           // Get FEN just before the deviation, then fetch explorer data
           const fen = fenAfterPlies(c.plies, check.inBook);
           const explorerData = await fetchExplorerData(fen);
-          const openingDbUrl = explorerLink(fen);
+          const openingDbUrl = explorerLink(fen, c.plies.concat([check.outMove]));
 
           // Debug: show what we got
           let debugStr = '';
