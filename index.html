@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.397</title>
+<title>Chess Openings Survivor — v1.398</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -353,7 +353,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.397</h1>
+  <h1>Chess Openings Survivor — v1.398</h1>
 
 
 
@@ -433,14 +433,36 @@ piece.fading {
         <div id="lichessResults"></div>
       </div>
       <div id="analysisContent" style="display:none;padding:8px 0">
-        <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">
-          Calculates how well your book covers opponent responses, weighted by Lichess popularity. Requires your Lichess token (set in Review tab).
+        <div style="margin-bottom:10px;font-size:13px;color:var(--muted)">
+          Requires your Lichess token (set in Review tab).
         </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-          <button id="analysisScanBtn">Run analysis</button>
-          <div id="analysisStatus" class="small" style="color:var(--muted)"></div>
+
+        <div style="border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:bold;color:#cfe0ff;margin-bottom:8px">Find first gap in book</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+            <label style="font-size:12px;color:var(--muted)">Threshold</label>
+            <input id="gapThreshold" type="number" value="25" min="1" max="99" step="1" style="width:60px;font-size:13px" />
+            <span style="font-size:12px;color:var(--muted)">%</span>
+            <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px">
+              <input id="gapTopOnly" type="checkbox" checked style="margin:0" />
+              Most popular move only
+            </label>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="gapScanBtn">Find first gap</button>
+            <div id="gapStatus" class="small" style="color:var(--muted)"></div>
+          </div>
+          <div id="gapResult" style="margin-top:10px"></div>
         </div>
-        <div id="analysisResults"></div>
+
+        <div style="border:1px solid var(--line);border-radius:10px;padding:10px">
+          <div style="font-size:13px;font-weight:bold;color:#cfe0ff;margin-bottom:8px">Full coverage analysis</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+            <button id="analysisScanBtn">Run analysis</button>
+            <div id="analysisStatus" class="small" style="color:var(--muted)"></div>
+          </div>
+          <div id="analysisResults"></div>
+        </div>
       </div>
       <div class="banner" id="banner"><div id="bannerText"></div><div class="details" id="bannerDetails"></div></div>
 <div id="addLinePanel" class="group" style="display:none;margin-top:10px">
@@ -2300,6 +2322,182 @@ function piecesMapFromBoard(){
       if(!m) return 0;
       return Math.round(((m.white||0)+(m.draws||0)+(m.black||0))/total*100);
     }
+
+
+    // ---- Find First Gap ----
+    const gapScanBtn = document.getElementById('gapScanBtn');
+    const gapThresholdEl = document.getElementById('gapThreshold');
+    const gapTopOnlyEl = document.getElementById('gapTopOnly');
+    const gapStatusEl = document.getElementById('gapStatus');
+    const gapResultEl = document.getElementById('gapResult');
+
+    // Walk trie looking for first uncovered gap above threshold
+    // Returns { plies, move, uci, freq, depth, side, bookMoves, explorerData } or null
+    async function findFirstGap(trie, side, threshold, topOnly, maxDepth){
+      // BFS by depth so we always find the earliest move number first
+      // Queue entries: { node, plies, cumWeight }
+      const queue = [];
+
+      // Seed with our first moves
+      if(trie.next && trie.next.size){
+        for(const [ourMove, ourNode] of trie.next){
+          queue.push({ node: ourNode, plies: [ourMove], cumWeight: 1.0 });
+        }
+      }
+
+      // For black, we also need to check depth 1 (white's first moves)
+      if(side === 'black'){
+        const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+        const data = await fetchExplorer(startFen);
+        if(data && data.moves && data.moves.length){
+          const posTotal = (data.white||0)+(data.draws||0)+(data.black||0);
+          const movesToCheck = topOnly ? [data.moves[0]] : data.moves;
+          for(const m of movesToCheck){
+            const mg = (m.white||0)+(m.draws||0)+(m.black||0);
+            const freq = posTotal ? mg/posTotal : 0;
+            if(freq*100 >= threshold){
+              const san = cleanTok(m.san);
+              if(!trie.next || !trie.next.has(san)){
+                // Gap at depth 1
+                return { plies: [], move: m.san, uci: m.uci||null, freq: Math.round(freq*100), depth: 1, side: side, bookMoves: [], explorerData: data };
+              }
+            }
+          }
+        }
+      }
+
+      // BFS through the trie
+      let bestGap = null; // { depth, freq, ... } — best gap found at the current min depth
+
+      while(queue.length > 0){
+        // If we already found a gap and the queue only has deeper items, stop
+        if(bestGap && queue[0].plies.length > bestGap.depth * 2){
+          break;
+        }
+
+        const { node, plies, cumWeight } = queue.shift();
+        const ourPlyIdx = side === 'white' ? 0 : 1;
+        const isOurTurn = (plies.length % 2) === ourPlyIdx;
+
+        if(!isOurTurn){
+          // Opponent's turn — check for gaps
+          const depth = Math.ceil((plies.length + 1) / 2);
+          if(depth > maxDepth) continue;
+
+          const fen = getFen(plies);
+          const data = await fetchExplorer(fen);
+          if(data && data.moves && data.moves.length){
+            const posTotal = (data.white||0)+(data.draws||0)+(data.black||0);
+            const movesToCheck = topOnly ? [data.moves[0]] : data.moves;
+
+            for(const m of movesToCheck){
+              const mg = (m.white||0)+(m.draws||0)+(m.black||0);
+              const freq = posTotal ? mg/posTotal : 0;
+              if(freq*100 < threshold) continue;
+              const san = cleanTok(m.san);
+              if(!node.next || !node.next.has(san)){
+                // Found a gap
+                const bookMovesArr = [];
+                if(node.next && node.next.size){
+                  for(const [bmSan] of node.next){
+                    const bmExplorer = data.moves.find(function(mv){ return cleanTok(mv.san)===bmSan; });
+                    bookMovesArr.push({ san: bmSan, uci: bmExplorer ? bmExplorer.uci : null });
+                  }
+                }
+                const gap = { plies: plies.slice(), move: m.san, uci: m.uci||null, freq: Math.round(freq*100), depth: depth, side: side, bookMoves: bookMovesArr, explorerData: data };
+                if(!bestGap || depth < bestGap.depth || (depth === bestGap.depth && gap.freq > bestGap.freq)){
+                  bestGap = gap;
+                }
+              }
+            }
+
+            // Queue covered moves for further exploration
+            for(const m of data.moves){
+              const san = cleanTok(m.san);
+              if(node.next && node.next.has(san)){
+                const oppNode = node.next.get(san);
+                if(oppNode.next && oppNode.next.size){
+                  for(const [ourMove, ourNode] of oppNode.next){
+                    queue.push({ node: ourNode, plies: plies.concat([m.san, ourMove]), cumWeight: cumWeight });
+                  }
+                }
+              }
+            }
+          }
+          continue;
+        }
+
+        // Our turn — queue all our book moves
+        if(!node.next || !node.next.size) continue;
+        for(const [ourMove, ourNode] of node.next){
+          queue.push({ node: ourNode, plies: plies.concat([ourMove]), cumWeight: cumWeight });
+        }
+      }
+
+      return bestGap;
+    }
+
+    function renderGapResult(gap){
+      if(!gap){
+        gapResultEl.innerHTML = '<div style="color:#6fcf97;font-size:13px">✓ No gaps found above threshold.</div>';
+        return;
+      }
+      const sideLabel = gap.side === 'white' ? '⬜ White' : '⬛ Black';
+      const afterStr = gap.plies.length ? gap.plies.join(' ') : 'start';
+      let html = '<div style="border:2px solid #7d2020;border-radius:8px;padding:10px;font-size:13px">';
+      html += '<div style="color:#ff9a9a;font-weight:bold;margin-bottom:6px">' + sideLabel + ' — Move ' + gap.depth + ': <b>' + gap.move + '</b> (' + gap.freq + '% of games) not in book</div>';
+      html += '<div style="color:var(--muted);font-size:11px;margin-bottom:8px">After: ' + afterStr + '</div>';
+      if(gap.bookMoves.length){
+        html += '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Book moves at this position: ' + gap.bookMoves.map(function(b){ return '<b>'+b.san+'</b>'; }).join(', ') + '</div>';
+      }
+      html += '<button class="secondary" id="gapLoadExplorer" style="font-size:12px;padding:4px 10px">Load in Explorer</button>';
+      html += '</div>';
+      gapResultEl.innerHTML = html;
+
+      document.getElementById('gapLoadExplorer') && document.getElementById('gapLoadExplorer').addEventListener('click', function(){
+        loadUncoveredInExplorer(gap.plies, gap.move, gap.uci, gap.bookMoves, gap.side, gap.explorerData);
+      });
+    }
+
+    gapScanBtn && gapScanBtn.addEventListener('click', async function(){
+      const token = (document.getElementById('lichessToken') || {}).value || '';
+      if(!token){ gapStatusEl.textContent = 'Enter Lichess token in Review tab first.'; return; }
+      const threshold = parseFloat(gapThresholdEl ? gapThresholdEl.value : 25) || 25;
+      const topOnly = gapTopOnlyEl ? gapTopOnlyEl.checked : true;
+      gapScanBtn.disabled = true;
+      gapResultEl.innerHTML = '';
+      gapStatusEl.textContent = 'Scanning…';
+
+      try {
+        const wLines = parseBook(bookWhiteEl.value);
+        const bLines = parseBook(bookBlackEl.value);
+        const wTrie = buildTrieFor(wLines);
+        const bTrie = buildTrieFor(bLines);
+
+        // Run both sides in parallel
+        gapStatusEl.textContent = 'Scanning both books…';
+        const [wGap, bGap] = await Promise.all([
+          findFirstGap(wTrie, 'white', threshold, topOnly, 6),
+          findFirstGap(bTrie, 'black', threshold, topOnly, 6)
+        ]);
+
+        // Pick the best: earliest depth, then highest freq as tiebreaker
+        let best = null;
+        for(const g of [wGap, bGap]){
+          if(!g) continue;
+          if(!best) { best = g; continue; }
+          if(g.depth < best.depth || (g.depth === best.depth && g.freq > best.freq)) best = g;
+        }
+
+        gapStatusEl.textContent = best ? 'Found.' : 'No gaps found.';
+        renderGapResult(best);
+      } catch(e){
+        gapStatusEl.textContent = 'Error: ' + e.message;
+      } finally {
+        gapScanBtn.disabled = false;
+      }
+    });
+
 
     scanBtn && scanBtn.addEventListener('click', function(){ runAnalysis(); });
   })();
