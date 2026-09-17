@@ -1,4 +1,4 @@
-const CACHE = 'chess-openings-v1.398';
+const CACHE = 'chess-openings-v1.399';
 
 self.addEventListener('install', function(e){
   e.waitUntil(
