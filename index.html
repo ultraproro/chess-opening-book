@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.399</title>
+<title>Chess Openings Survivor — v1.400</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -353,7 +353,11 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.399</h1>
+  <h1>Chess Openings Survivor — v1.400</h1>
+  <div id="localFileBanner" style="display:none;background:#7d2020;color:#ffd6a6;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;font-weight:bold;text-align:center">
+    ⚠️ You are using a local file — this may not be the latest version.
+    <a href="https://ultraproro.github.io/chess-opening-book/" style="color:#fff;margin-left:8px;text-decoration:underline">Open live version ↗</a>
+  </div>
 
 
 
@@ -2520,6 +2524,13 @@ function piecesMapFromBoard(){
   fatalBox.textContent='Fatal error: '+err.message;
 }
 })();
+  // Show warning if running as a local file or not from the live URL
+  (function(){
+    const loc = window.location;
+    const isLive = loc.protocol === 'https:' && loc.hostname === 'ultraproro.github.io';
+    const banner = document.getElementById('localFileBanner');
+    if(banner && !isLive) banner.style.display = 'block';
+  })();
 </script>
 
 <script>
