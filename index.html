@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.400</title>
+<title>Chess Openings Survivor — v1.401</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -353,7 +353,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.400</h1>
+  <h1>Chess Openings Survivor — v1.401</h1>
   <div id="localFileBanner" style="display:none;background:#7d2020;color:#ffd6a6;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;font-weight:bold;text-align:center">
     ⚠️ You are using a local file — this may not be the latest version.
     <a href="https://ultraproro.github.io/chess-opening-book/" style="color:#fff;margin-left:8px;text-decoration:underline">Open live version ↗</a>
@@ -1128,7 +1128,6 @@ const LS_PREF='openingsSurvivorPrefs_v1';
       for(const ln of lines){ openings[ln.opening]=true; }
       const names=Object.keys(openings).sort();
       for(const n of names){ if(typeof enabled[n]==='undefined') enabled[n]=true; }
-      for(const k in enabled){ if(!openings[k]) delete enabled[k]; }
 
       host.innerHTML='';
       if(!names.length){ host.innerHTML='<div class="small">(none)</div>'; return; }
@@ -1637,18 +1636,41 @@ function piecesMapFromBoard(){
   function startRun(){
     if(currentMode()==='review' || currentMode()==='analysis'){ updateModeButtons(); return; }
     resetPosition();
-    chosenSide = sideEl.value==='random' ? (Math.random()<0.5?'white':'black') : sideEl.value;
 
     const parsedW = parseBook(bookWhiteEl.value);
     const parsedB = parseBook(bookBlackEl.value);
     renderOpeningToggles(parsedW, parsedB);
+
+    // Count enabled, valid lines per side so Random never lands on a side with nothing ticked
+    function viableCount(side){
+      const raw = side==='white' ? parsedW : parsedB;
+      const en = side==='white' ? pref.enabledOpeningsW : pref.enabledOpeningsB;
+      return raw.filter(function(ln){ return en[ln.opening]!==false && validateLineFromStart(ln.plies).ok; }).length;
+    }
+    const whiteViable = viableCount('white');
+    const blackViable = viableCount('black');
+    if(sideEl.value==='random'){
+      if(whiteViable && blackViable) chosenSide = Math.random()<0.5 ? 'white' : 'black';
+      else if(whiteViable) chosenSide = 'white';
+      else if(blackViable) chosenSide = 'black';
+      else chosenSide = Math.random()<0.5 ? 'white' : 'black';
+    } else {
+      chosenSide = sideEl.value;
+    }
 
     const rawLines = (chosenSide==='white') ? parsedW : parsedB;
     let lines = validateAndFilter(chosenSide.toUpperCase(), rawLines);
     const enabledOpen = (chosenSide==='white') ? pref.enabledOpeningsW : pref.enabledOpeningsB;
     lines = lines.filter(ln => enabledOpen[ln.opening]!==false);
     resetPosition();
-    if(!lines.length){ showBanner('fail','No valid lines','Check Book warnings / opening toggles.'); return; }
+    if(!lines.length){
+      const otherViable = (chosenSide==='white') ? blackViable : whiteViable;
+      const hint = otherViable
+        ? 'No ' + chosenSide + ' openings are ticked, but the other side has some. Set Side to Random (or the other colour).'
+        : 'Check Book warnings / opening toggles.';
+      showBanner('fail','No enabled ' + chosenSide + ' lines', hint);
+      return;
+    }
 
     openingName = lines.length ? lines[0].opening : '—';
     trie = buildTrieFor(lines);
