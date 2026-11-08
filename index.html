@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.401</title>
+<title>Chess Openings Survivor — v1.402</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -353,7 +353,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.401</h1>
+  <h1>Chess Openings Survivor — v1.402</h1>
   <div id="localFileBanner" style="display:none;background:#7d2020;color:#ffd6a6;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;font-weight:bold;text-align:center">
     ⚠️ You are using a local file — this may not be the latest version.
     <a href="https://ultraproro.github.io/chess-opening-book/" style="color:#fff;margin-left:8px;text-decoration:underline">Open live version ↗</a>
@@ -1709,6 +1709,17 @@ function piecesMapFromBoard(){
     if(currentMode()==='survival' && chosenSide==='black') setTimeout(()=>{ maybeOpponent(); },200);
   }
 
+  // Called by the GitHub/cache loader: puts a new book into the textareas AND rebuilds
+  // checklists + survival lines from it, so text, ticks and play all use the same book.
+  window.__chessReloadBook = function(whiteText, blackText){
+    if(typeof whiteText==='string') bookWhiteEl.value = whiteText;
+    if(typeof blackText==='string') bookBlackEl.value = blackText;
+    saveBook({ white: bookWhiteEl.value, black: bookBlackEl.value, source:'saved', ts: Date.now() });
+    if(bookSourceEl) bookSourceEl.textContent = 'Book source: GitHub';
+    renderOpeningToggles(parseBook(bookWhiteEl.value), parseBook(bookBlackEl.value));
+    startRun();
+  };
+
   // ---- Position comments (stored inline in book as [note] tokens) ----
   const positionCommentBoxEl = document.getElementById('positionCommentBox');
   const positionCommentEl = document.getElementById('positionComment');
@@ -2704,9 +2715,14 @@ function applyExternalBook(t){
   const blackMatch = t.match(/As Black\s*([\s\S]*)/i);
   const wEl = document.getElementById("bookWhite");
   const bEl = document.getElementById("bookBlack");
-  if(whiteMatch && wEl) wEl.value = whiteMatch[1].trim();
-  if(blackMatch && bEl) bEl.value = blackMatch[1].trim();
-  if(typeof startRun === "function") startRun();
+  const w = whiteMatch ? whiteMatch[1].trim() : null;
+  const b = blackMatch ? blackMatch[1].trim() : null;
+  if(typeof window.__chessReloadBook === "function"){
+    window.__chessReloadBook(w, b);
+  } else {
+    if(w!==null && wEl) wEl.value = w;
+    if(b!==null && bEl) bEl.value = b;
+  }
 }
 
 async function saveToGithub(){
