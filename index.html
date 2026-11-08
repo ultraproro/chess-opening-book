@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.402</title>
+<title>Chess Openings Survivor — v1.403</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -353,7 +353,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.402</h1>
+  <h1>Chess Openings Survivor — v1.403</h1>
   <div id="localFileBanner" style="display:none;background:#7d2020;color:#ffd6a6;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;font-weight:bold;text-align:center">
     ⚠️ You are using a local file — this may not be the latest version.
     <a href="https://ultraproro.github.io/chess-opening-book/" style="color:#fff;margin-left:8px;text-decoration:underline">Open live version ↗</a>
@@ -389,6 +389,7 @@ piece.fading {
       <button id="explorerForward" class="secondary">Forward →</button>
       <button id="explorerFlip" class="secondary" style="display:none">Flip board</button>
       <button id="saveVariationBtn" class="secondary" style="display:none">Save current variation</button>
+      <button id="openLichessBtn" class="secondary" title="Open the current position/line in Lichess analysis">Open in Lichess ↗</button>
     </div>
     <div id="positionCommentBox" style="margin-top:10px;display:none">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -1708,6 +1709,22 @@ function piecesMapFromBoard(){
     syncGround();
     if(currentMode()==='survival' && chosenSide==='black') setTimeout(()=>{ maybeOpponent(); },200);
   }
+
+  // Open the current line (Survival: moves played so far; Explorer: moves up to the cursor) in Lichess analysis
+  function lichessAnalysisUrl(moves, color){
+    let url = 'https://lichess.org/analysis';
+    if(moves && moves.length){
+      const parts = moves.map(function(m, i){
+        return (i % 2 === 0 ? (Math.floor(i/2)+1) + '.' : '') + encodeURIComponent(m);
+      });
+      url += '/pgn/' + parts.join('_');
+    }
+    return url + '?color=' + (color === 'black' ? 'black' : 'white');
+  }
+  const openLichessBtn = document.getElementById('openLichessBtn');
+  openLichessBtn && openLichessBtn.addEventListener('click', function(){
+    window.open(lichessAnalysisUrl(currentLineMoves(), currentOrientation()), '_blank', 'noopener');
+  });
 
   // Called by the GitHub/cache loader: puts a new book into the textareas AND rebuilds
   // checklists + survival lines from it, so text, ticks and play all use the same book.
