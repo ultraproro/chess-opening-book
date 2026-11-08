@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.403</title>
+<title>Chess Openings Survivor — v1.404</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -108,6 +108,58 @@ cg-board piece{transform:scale(0.92);transform-origin:center;}
 
 input, select, textarea{background:#0e1330;border:1px solid #2b3169;color:var(--text);border-radius:10px;padding:8px 10px;outline:none}
 input:focus, select:focus, textarea:focus{border-color:#6670ff;box-shadow:0 0 0 3px rgba(102,112,255,.18)}
+
+/* ---- Survival 2 (arcade) ---- */
+#arcadeHud{display:none;margin-bottom:10px}
+.arc-rival{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#2a1240,#151938);border:1px solid #5b2a86;border-radius:12px;padding:8px 10px;position:relative}
+.arc-avatar{font-size:34px;line-height:1;width:44px;text-align:center}
+.arc-avatar.hit{animation:arcHit .35s}
+.arc-rival-name{font-weight:800;font-size:13px;color:#f3d9ff;letter-spacing:.5px}
+.arc-round{font-size:11px;color:#c9a6ff}
+.arc-bar{height:12px;background:#0b0e2a;border:1px solid #3a2a5e;border-radius:7px;overflow:hidden;margin-top:4px}
+.arc-bar > div{height:100%;transition:width .25s ease-out}
+.arc-hp > div{background:linear-gradient(90deg,#ff3b5c,#ff8a3b)}
+.arc-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}
+.arc-hearts{font-size:20px;letter-spacing:2px}
+.arc-score{font-weight:900;font-size:20px;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 0 8px rgba(122,156,255,.6)}
+.arc-combo{font-weight:900;font-size:15px;color:#ffd166}
+.arc-mult{font-size:12px;color:#9fb3ff}
+.arc-timer > div{background:#3ddc84;transition:width .1s linear}
+.arc-timer.warn > div{background:#ffb020}
+.arc-timer.danger > div{background:#ff3b5c;animation:arcBlink .4s infinite alternate}
+.arc-power > div{background:linear-gradient(90deg,#7a5cff,#ff5cf0,#ffd166)}
+.arc-power.full > div{animation:arcRainbow 1s linear infinite}
+.arc-label{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:6px}
+.arc-mute{background:transparent;border:1px solid var(--line);border-radius:8px;padding:2px 8px;font-size:14px;cursor:pointer;color:inherit}
+.arcade-fx{position:absolute;inset:0;pointer-events:none;z-index:15;overflow:visible}
+.arcade-hype{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font-weight:900;font-size:clamp(24px,8vw,40px);white-space:nowrap;letter-spacing:1px;color:#fff;-webkit-text-stroke:2px #1b0f3a;text-shadow:0 4px 0 #1b0f3a,0 0 18px rgba(255,255,255,.5);animation:arcHype 1.1s ease-out forwards}
+.arcade-hype.good{color:#7dffb0}
+.arcade-hype.bad{color:#ff6b81}
+.arcade-hype.gold{color:#ffd166}
+.arcade-hype.small{font-size:clamp(16px,5vw,24px);top:28%}
+.arcade-hype.ko{font-size:clamp(56px,20vw,96px);color:#ff3b5c;animation:arcKO 1.5s ease-out forwards}
+.arc-particle{position:absolute;width:8px;height:8px;border-radius:50%;animation:arcBurst .65s ease-out forwards}
+.arc-dmg{position:absolute;right:14px;top:4px;font-weight:900;color:#ffd166;font-size:18px;animation:arcFloat .9s ease-out forwards;pointer-events:none}
+.boardWrap.arc-shake{animation:arcShake .4s}
+.boardWrap.arc-fever{animation:arcFeverGlow .8s ease-in-out infinite alternate;border-radius:4px}
+.arcade-overlay{position:absolute;inset:0;z-index:20;background:rgba(8,6,24,.84);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px;border-radius:4px}
+.arc-title{font-weight:900;font-size:clamp(30px,10vw,44px);letter-spacing:2px;background:linear-gradient(180deg,#ffd166,#ff5c8a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #1b0f3a)}
+.arc-sub{color:#cfd6ff;font-size:13px;margin:6px 0 10px;line-height:1.5}
+.arc-btn{font-size:18px;font-weight:900;padding:10px 26px;border-radius:12px;border:none;background:linear-gradient(180deg,#ff5c8a,#c2185b);color:#fff;box-shadow:0 4px 0 #6d0f33;cursor:pointer;animation:arcPulse .8s infinite alternate}
+.arc-stats{display:grid;grid-template-columns:auto auto;gap:4px 16px;font-size:14px;color:#e4e8ff;margin:10px 0 14px;text-align:left}
+.arc-stats b{color:#ffd166}
+.arc-rank{font-size:22px;font-weight:900;color:#7dffb0;margin-top:4px}
+.arc-newbest{color:#ffd166;font-weight:900;animation:arcPulse .5s infinite alternate}
+@keyframes arcHype{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}15%{transform:translate(-50%,-50%) scale(1.25);opacity:1}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-90%) scale(1);opacity:0}}
+@keyframes arcKO{0%{transform:translate(-50%,-50%) scale(4) rotate(-10deg);opacity:0}20%{transform:translate(-50%,-50%) scale(1) rotate(-6deg);opacity:1}85%{opacity:1}100%{transform:translate(-50%,-50%) scale(1.3) rotate(-6deg);opacity:0}}
+@keyframes arcBurst{0%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.2);opacity:0}}
+@keyframes arcFloat{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-28px);opacity:0}}
+@keyframes arcShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-8px,3px)}40%{transform:translate(7px,-4px)}60%{transform:translate(-5px,2px)}80%{transform:translate(4px,-2px)}}
+@keyframes arcHit{0%{transform:scale(1)}30%{transform:scale(1.3) rotate(-12deg);filter:brightness(2)}100%{transform:scale(1)}}
+@keyframes arcPulse{from{transform:scale(1)}to{transform:scale(1.05)}}
+@keyframes arcBlink{from{opacity:.6}to{opacity:1}}
+@keyframes arcRainbow{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
+@keyframes arcFeverGlow{from{box-shadow:0 0 0 3px #ffd166,0 0 16px 4px rgba(255,209,102,.45)}to{box-shadow:0 0 0 3px #ff5cf0,0 0 32px 8px rgba(255,92,240,.6)}}
 
 </style>
 <style>
@@ -353,7 +405,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.403</h1>
+  <h1>Chess Openings Survivor — v1.404</h1>
   <div id="localFileBanner" style="display:none;background:#7d2020;color:#ffd6a6;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;font-weight:bold;text-align:center">
     ⚠️ You are using a local file — this may not be the latest version.
     <a href="https://ultraproro.github.io/chess-opening-book/" style="color:#fff;margin-left:8px;text-decoration:underline">Open live version ↗</a>
@@ -375,15 +427,17 @@ piece.fading {
         <button id="modeExplorerBtn" class="secondary boardModeBtn">Explorer</button>
         <button id="modeReviewBtn" class="secondary boardModeBtn">Review</button>
         <button id="modeAnalysisBtn" class="secondary boardModeBtn">Analysis</button>
+        <button id="modeArcadeBtn" class="secondary boardModeBtn">Survival 2 ⚡</button>
       </div>
       <div id="boardContent">
       <div class="small" id="turn">—</div>
       <div id="survivalStats" class="status" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
   <div class="small" style="background:#0e1330;border:1px solid #2b3169;border-radius:10px;padding:6px 10px">Streak: <b id="streak">0</b></div>
 </div>
+      <div id="arcadeHud"></div>
 <div class="boardMainRow">
   <div>
-    <div id="cgWrap"><div class="boardWrap cg-host"><div id="cg" class="cg-wrap"></div><div id="wrongMoveOverlay" style="display:none;position:absolute;inset:0;z-index:10;cursor:pointer"></div><div class="coords files" id="fileCoords"></div><div class="coords ranks" id="rankCoords"></div></div></div>
+    <div id="cgWrap"><div class="boardWrap cg-host"><div id="cg" class="cg-wrap"></div><div id="wrongMoveOverlay" style="display:none;position:absolute;inset:0;z-index:10;cursor:pointer"></div><div id="arcadeFx" class="arcade-fx"></div><div id="arcadeOverlay" class="arcade-overlay" style="display:none"></div><div class="coords files" id="fileCoords"></div><div class="coords ranks" id="rankCoords"></div></div></div>
     <div class="boardBottomControls">
       <button id="explorerBack" class="secondary">← Back</button>
       <button id="explorerForward" class="secondary">Forward →</button>
@@ -520,6 +574,7 @@ piece.fading {
           <option value="explorer">Explorer</option>
           <option value="review">Review</option>
           <option value="analysis">Analysis</option>
+          <option value="arcade">Survival 2</option>
         </select>
       </label>
       <div class="controls">
@@ -1192,6 +1247,7 @@ const LS_PREF='openingsSurvivorPrefs_v1';
     waitingForClickAfterWrong = false;
     if(ground) ground.set({ drawable: { autoShapes: [] } });
     hideBanner();
+    if(currentMode()==='arcade'){ arcadeAfterWrongTap(); return; }
     startRun();
   });
 
@@ -1201,6 +1257,8 @@ const LS_PREF='openingsSurvivorPrefs_v1';
   modeReviewBtn && modeReviewBtn.addEventListener('click', ()=>{ if(modeEl){ modeEl.value='review'; modeEl.dispatchEvent(new Event('change')); } });
   const modeAnalysisBtn = document.getElementById('modeAnalysisBtn');
   modeAnalysisBtn && modeAnalysisBtn.addEventListener('click', ()=>{ if(modeEl){ modeEl.value='analysis'; modeEl.dispatchEvent(new Event('change')); } });
+  const modeArcadeBtnEl = document.getElementById('modeArcadeBtn');
+  modeArcadeBtnEl && modeArcadeBtnEl.addEventListener('click', ()=>{ if(modeEl){ modeEl.value='arcade'; modeEl.dispatchEvent(new Event('change')); } });
 
   loadLocalBtn && loadLocalBtn.addEventListener('click', ()=>{ manualLoad(); });
   saveVariationBtn && saveVariationBtn.addEventListener('click', ()=>{ saveCurrentVariation(); });
@@ -1440,6 +1498,9 @@ function piecesMapFromBoard(){
     const isBoard = !isReview && !isAnalysis;
     if(modeSurvivalBtn) modeSurvivalBtn.classList.toggle('active', mode==='survival');
     if(modeExplorerBtn) modeExplorerBtn.classList.toggle('active', mode==='explorer');
+    const modeArcadeBtn = document.getElementById('modeArcadeBtn');
+    if(modeArcadeBtn) modeArcadeBtn.classList.toggle('active', mode==='arcade');
+    arcadeSyncVisibility(mode);
     const modeReviewBtn = document.getElementById('modeReviewBtn');
     if(modeReviewBtn) modeReviewBtn.classList.toggle('active', isReview);
     const modeAnalysisBtn = document.getElementById('modeAnalysisBtn');
@@ -1540,27 +1601,20 @@ function piecesMapFromBoard(){
     } else {
       ground.set({ movable: { color: null, dests: new Map(), events: { after: onAfter } } });
     }
+    if(currentMode()==='arcade') arcadeTurnState(yourTurn);
   }
 
   function maybeOpponent(){
     if(currentMode()==='explorer') return;
     const oppColor = (chosenSide==='white'?'b':'w');
     if(sideToMove!==oppColor) return;
-    const legal = legalMovesAt(node);    if(!legal.length){ flashBoard('green');
-        flashBoard('green');
-        score.streak=(score.streak||0)+1; streakEl.textContent=String(score.streak);
-
-        saveScore(score);
-        showBanner('success','Line complete','Streak: '+score.streak); setTimeout(()=>{ hideBanner(); startRun(); },800); return; }
+    const legal = legalMovesAt(node);    if(!legal.length){ lineComplete(); return; }
     const pick = legal[Math.floor(Math.random()*legal.length)];
-    const ok = applySAN(pick);    if(!ok){ flashBoard('green');
-        flashBoard('green');
-        score.streak=(score.streak||0)+1; streakEl.textContent=String(score.streak);
-
-        saveScore(score);
-        showBanner('success','Line complete','Streak: '+score.streak); setTimeout(()=>{ hideBanner(); startRun(); },800); return; }
+    const ok = applySAN(pick);    if(!ok){ lineComplete(); return; }
     node = node.next.get(pick);
     syncGround();
+    // Line ends on the opponent's move: count it as complete instead of waiting for a move that isn't in the book
+    if(!node || legalMovesAt(node).length===0){ setTimeout(()=>{ lineComplete(); }, 300); }
   }
 
   function onAfter(from,to){
@@ -1604,7 +1658,7 @@ function piecesMapFromBoard(){
     if(!san) { syncGround(); return; }
     const legal = legalMovesAt(node);    if(!legal.includes(san)) {
       flashBoard('red');
-      score.streak=0; streakEl.textContent='0'; saveScore(score);
+      if(currentMode()!=='arcade'){ score.streak=0; streakEl.textContent='0'; saveScore(score); }
       // Reset board visually to pre-move state, keeping lastMove highlight (yellow squares)
       const shapes = [];
       for(const correctSan of legal){
@@ -1621,16 +1675,15 @@ function piecesMapFromBoard(){
       showBanner('fail','Wrong move — tap board to continue','Book: '+(legal.join(', ')||'(none)'));
       waitingForClickAfterWrong = true;
       if(wrongMoveOverlay) wrongMoveOverlay.style.display = 'block';
+      if(currentMode()==='arcade') arcadeWrong(false);
       return;
     }
     applySAN(san);
     node = node.next.get(san);
+    const arcadeTookOver = (currentMode()==='arcade') ? arcadeCorrect(to) : false;
     syncGround();
-    if(!node || legalMovesAt(node).length===0){ flashBoard('green');
-        flashBoard('green');
-        score.streak=(score.streak||0)+1; streakEl.textContent=String(score.streak);
-        saveScore(score);
-        showBanner('success','Line complete','Streak: '+score.streak); setTimeout(()=>{ hideBanner(); startRun(); },800); return; }
+    if(arcadeTookOver) return;
+    if(!node || legalMovesAt(node).length===0){ lineComplete(); return; }
     setTimeout(()=>{ maybeOpponent(); },200);
   }
 
@@ -1706,9 +1759,367 @@ function piecesMapFromBoard(){
       ground.set({ orientation: currentOrientation() });
     }
     hideBanner();
+    if(currentMode()==='arcade') arcadeOnNewLine();
     syncGround();
-    if(currentMode()==='survival' && chosenSide==='black') setTimeout(()=>{ maybeOpponent(); },200);
+    if((currentMode()==='survival' || (currentMode()==='arcade' && arcade && arcade.active)) && chosenSide==='black') setTimeout(()=>{ maybeOpponent(); },200);
   }
+
+  // ================= Survival 2 (arcade) =================
+  var ARC_RIVALS = [
+    { name:'Book Bot',         emoji:'🤖', hp:150, time:15 },
+    { name:'Sly Fox',          emoji:'🦊', hp:220, time:12 },
+    { name:'Gambit Wizard',    emoji:'🧙', hp:300, time:10 },
+    { name:'The Dragon',       emoji:'🐉', hp:400, time:8 },
+    { name:'Grandmaster Zero', emoji:'👑', hp:520, time:6 }
+  ];
+  var ARC_RANKS = [[0,'Patzer'],[2000,'Club Player'],[6000,'Expert'],[12000,'Master'],[25000,'Grandmaster'],[50000,'World Champion']];
+  var ARC_BEST_KEY = 'openingsArcadeBest_v1', ARC_MUTE_KEY = 'openingsArcadeMuted_v1';
+  var arcHudEl = document.getElementById('arcadeHud');
+  var arcFxEl = document.getElementById('arcadeFx');
+  var arcOverlayEl = document.getElementById('arcadeOverlay');
+  var arcBoardWrap = document.querySelector('.boardWrap');
+  var arcAudio = null, arcTimerInterval = null;
+  var arcade = null;
+
+  function arcLoadBest(){ try{ return parseInt(localStorage.getItem(ARC_BEST_KEY)||'0',10)||0; }catch(e){ return 0; } }
+  function arcMuted(){ try{ return localStorage.getItem(ARC_MUTE_KEY)==='1'; }catch(e){ return false; } }
+  function arcRank(s){ let r = ARC_RANKS[0][1]; for(const t of ARC_RANKS){ if(s >= t[0]) r = t[1]; } return r; }
+
+  function arcFreshState(){
+    return { active:false, paused:true, over:false, hearts:3, score:0, combo:0, bestCombo:0, power:0, fever:0,
+      rivalIndex:0, rivalHp:0, rivalMaxHp:0, rivalTime:15, correct:0, wrong:0, lines:0, kos:0,
+      lineId:0, timerKey:null, timerStart:0, timerOn:false, lastTick:-1 };
+  }
+  function arcRival(i){
+    const base = ARC_RIVALS[i % ARC_RIVALS.length];
+    const cycle = Math.floor(i / ARC_RIVALS.length);
+    return { name: base.name + (cycle ? ' ' + 'I'.repeat(cycle+1) : ''), emoji: base.emoji,
+             hp: Math.round(base.hp * (1 + 0.35*cycle)), time: Math.max(4, base.time - 2*cycle) };
+  }
+  function arcSetRival(i){
+    const r = arcRival(i);
+    arcade.rivalIndex = i; arcade.rivalHp = r.hp; arcade.rivalMaxHp = r.hp; arcade.rivalTime = r.time;
+    arcRenderHud();
+  }
+  function arcMult(){
+    let m = Math.min(5, 1 + Math.floor(arcade.combo/4)*0.5);
+    if(arcade.fever > 0) m *= 2;
+    return m;
+  }
+
+  // ---- Sound (synthesised, no files) ----
+  function arcSfx(type, n){
+    if(arcMuted()) return;
+    try{
+      if(!arcAudio) arcAudio = new (window.AudioContext || window.webkitAudioContext)();
+      if(arcAudio.state === 'suspended') arcAudio.resume();
+      const ctx = arcAudio, now = ctx.currentTime;
+      function tone(freq, start, dur, wave, vol){
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = wave || 'square';
+        o.frequency.setValueAtTime(freq, now + start);
+        g.gain.setValueAtTime(vol || 0.06, now + start);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(now + start); o.stop(now + start + dur + 0.02);
+      }
+      if(type === 'correct'){ const b = 440 * Math.pow(2, Math.min(n||0, 14)/12); tone(b,0,0.11,'square',0.05); tone(b*1.5,0.05,0.12,'triangle',0.05); }
+      else if(type === 'wrong'){ tone(150,0,0.3,'sawtooth',0.07); tone(100,0.1,0.35,'sawtooth',0.06); }
+      else if(type === 'clear'){ [523,659,784,1047].forEach(function(f,i){ tone(f,i*0.07,0.15,'square',0.05); }); }
+      else if(type === 'ko'){ [392,523,659,784,1047,1319].forEach(function(f,i){ tone(f,i*0.09,0.22,'square',0.06); }); }
+      else if(type === 'fever'){ [880,1175,1568,2093].forEach(function(f,i){ tone(f,i*0.05,0.12,'triangle',0.06); }); }
+      else if(type === 'tick'){ tone(1200,0,0.04,'square',0.03); }
+      else if(type === 'start'){ [262,330,392,523].forEach(function(f,i){ tone(f,i*0.1,0.18,'square',0.05); }); }
+      else if(type === 'over'){ [392,330,262,196].forEach(function(f,i){ tone(f,i*0.15,0.25,'triangle',0.06); }); }
+    }catch(e){}
+  }
+
+  // ---- Visual effects ----
+  function arcHype(text, cls){
+    if(!arcFxEl) return;
+    const d = document.createElement('div');
+    d.className = 'arcade-hype ' + (cls || '');
+    d.textContent = text;
+    arcFxEl.appendChild(d);
+    setTimeout(function(){ d.remove(); }, (cls||'').indexOf('ko') >= 0 ? 1600 : 1150);
+  }
+  function arcSquarePct(sq){
+    const f = 'abcdefgh'.indexOf(sq[0]), r = parseInt(sq[1],10) - 1;
+    const white = currentOrientation() === 'white';
+    const x = white ? f : 7 - f, y = white ? 7 - r : r;
+    return { x: (x + 0.5) * 12.5, y: (y + 0.5) * 12.5 };
+  }
+  function arcBurst(sq, colors){
+    if(!arcFxEl || !sq || sq.length < 2) return;
+    const p = arcSquarePct(sq), n = 14;
+    for(let i = 0; i < n; i++){
+      const s = document.createElement('span');
+      s.className = 'arc-particle';
+      const a = (Math.PI*2*i/n) + Math.random()*0.4, dist = 30 + Math.random()*40;
+      s.style.left = p.x + '%'; s.style.top = p.y + '%';
+      s.style.setProperty('--dx', (Math.cos(a)*dist) + 'px');
+      s.style.setProperty('--dy', (Math.sin(a)*dist) + 'px');
+      s.style.background = colors[i % colors.length];
+      arcFxEl.appendChild(s);
+      setTimeout(function(){ s.remove(); }, 700);
+    }
+  }
+  function arcShake(){
+    if(!arcBoardWrap) return;
+    arcBoardWrap.classList.remove('arc-shake'); void arcBoardWrap.offsetWidth;
+    arcBoardWrap.classList.add('arc-shake');
+    setTimeout(function(){ arcBoardWrap.classList.remove('arc-shake'); }, 450);
+  }
+  function arcDamage(n){
+    const av = document.getElementById('arcAvatar');
+    if(av){ av.classList.remove('hit'); void av.offsetWidth; av.classList.add('hit'); }
+    const box = document.getElementById('arcRivalBox');
+    if(box){
+      const f = document.createElement('div'); f.className = 'arc-dmg'; f.textContent = '-' + n;
+      box.appendChild(f); setTimeout(function(){ f.remove(); }, 950);
+    }
+  }
+  function arcSetFever(on){ if(arcBoardWrap) arcBoardWrap.classList.toggle('arc-fever', !!on); }
+
+  // ---- HUD ----
+  function arcRenderHud(){
+    if(!arcHudEl || !arcade) return;
+    const r = arcRival(arcade.rivalIndex);
+    const hpPct = arcade.rivalMaxHp ? Math.max(0, arcade.rivalHp / arcade.rivalMaxHp * 100) : 100;
+    const hearts = '❤️'.repeat(Math.max(0, arcade.hearts)) + '🖤'.repeat(Math.max(0, 3 - arcade.hearts));
+    const powerFull = arcade.fever > 0 || arcade.power >= 100;
+    arcHudEl.innerHTML =
+      '<div class="arc-rival" id="arcRivalBox">' +
+        '<div class="arc-avatar" id="arcAvatar">' + r.emoji + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px"><span class="arc-rival-name">' + r.name + '</span><span class="arc-round">ROUND ' + (arcade.rivalIndex+1) + '</span></div>' +
+          '<div class="arc-bar arc-hp"><div style="width:' + hpPct + '%"></div></div>' +
+          '<div class="arc-round" style="margin-top:2px">' + Math.max(0, arcade.rivalHp) + ' / ' + arcade.rivalMaxHp + ' HP · ' + arcade.rivalTime + 's per move</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="arc-row">' +
+        '<span class="arc-hearts">' + hearts + '</span>' +
+        '<span class="arc-score">' + arcade.score.toLocaleString() + '</span>' +
+        '<span><span class="arc-combo">' + (arcade.combo >= 2 ? ('COMBO ' + arcade.combo) : '') + '</span> <span class="arc-mult">×' + arcMult() + '</span></span>' +
+        '<button class="arc-mute" id="arcMuteBtn" title="Sound on/off">' + (arcMuted() ? '🔇' : '🔊') + '</button>' +
+      '</div>' +
+      '<div class="arc-label">TIME</div>' +
+      '<div class="arc-bar arc-timer" id="arcTimerBar"><div id="arcTimerFill" style="width:' + (arcade.timerOn ? arcTimeLeftFrac()*100 : 100) + '%"></div></div>' +
+      '<div class="arc-label">⚡ POWER' + (arcade.fever > 0 ? ' — FEVER ×2 (' + arcade.fever + ' moves left)' : '') + '</div>' +
+      '<div class="arc-bar arc-power' + (powerFull ? ' full' : '') + '"><div style="width:' + (arcade.fever > 0 ? 100 : arcade.power) + '%"></div></div>';
+    const mb = document.getElementById('arcMuteBtn');
+    if(mb) mb.onclick = function(){ try{ localStorage.setItem(ARC_MUTE_KEY, arcMuted() ? '0' : '1'); }catch(e){} arcRenderHud(); };
+  }
+
+  // ---- Move clock ----
+  function arcStopTimer(){ if(arcade) arcade.timerOn = false; }
+  function arcTimeLeftFrac(){
+    if(!arcade || !arcade.timerOn) return 1;
+    const el = (performance.now() - arcade.timerStart) / 1000;
+    return Math.max(0, 1 - el / arcade.rivalTime);
+  }
+  function arcEnsureInterval(){
+    if(arcTimerInterval) return;
+    arcTimerInterval = setInterval(function(){
+      if(!arcade || !arcade.active || !arcade.timerOn || currentMode() !== 'arcade') return;
+      const frac = arcTimeLeftFrac();
+      const fill = document.getElementById('arcTimerFill'), bar = document.getElementById('arcTimerBar');
+      if(fill) fill.style.width = (frac*100) + '%';
+      if(bar){ bar.classList.toggle('warn', frac <= 0.5 && frac > 0.25); bar.classList.toggle('danger', frac <= 0.25); }
+      const secsLeft = Math.ceil(frac * arcade.rivalTime);
+      if(frac <= 0.25 && frac > 0 && secsLeft !== arcade.lastTick){ arcade.lastTick = secsLeft; arcSfx('tick'); }
+      if(frac <= 0){ arcStopTimer(); arcTimeout(); }
+    }, 100);
+  }
+  function arcadeTurnState(yourTurn){
+    if(!arcade || !arcade.active || arcade.paused) return;
+    if(yourTurn && node && legalMovesAt(node).length){
+      const key = arcade.lineId + ':' + playedMoves.length;
+      if(arcade.timerKey !== key){
+        arcade.timerKey = key; arcade.timerStart = performance.now(); arcade.timerOn = true; arcade.lastTick = -1;
+        arcEnsureInterval();
+        const bar = document.getElementById('arcTimerBar');
+        if(bar){ bar.classList.remove('warn'); bar.classList.remove('danger'); }
+      }
+    } else {
+      arcStopTimer();
+    }
+  }
+
+  // ---- Game events ----
+  function arcCheckFever(){
+    if(arcade.fever === 0 && arcade.power >= 100){
+      arcade.fever = 6; arcade.power = 0;
+      arcSetFever(true); arcSfx('fever');
+      setTimeout(function(){ arcHype('FEVER ×2!!', 'gold'); }, 250);
+      arcRenderHud();
+    }
+  }
+  // Returns true if it has taken over the game flow (rival knocked out)
+  function arcadeCorrect(to){
+    if(!arcade || !arcade.active) return false;
+    const frac = arcTimeLeftFrac();
+    arcStopTimer();
+    arcade.correct++; arcade.combo++;
+    arcade.bestCombo = Math.max(arcade.bestCombo, arcade.combo);
+    const mult = arcMult();
+    const pts = Math.round((100 + Math.round(100*frac)) * mult);
+    const dmg = Math.round(10 * mult);
+    arcade.score += pts; arcade.rivalHp -= dmg;
+    if(arcade.fever > 0){ arcade.fever--; if(arcade.fever === 0) arcSetFever(false); }
+    else { arcade.power = Math.min(100, arcade.power + (frac > 0.5 ? 18 : 10)); }
+    arcSfx('correct', arcade.combo);
+    arcBurst(to, arcade.fever > 0 ? ['#ffd166','#ff5cf0','#ffffff'] : ['#7dffb0','#7a9cff','#ffffff']);
+    arcRenderHud(); arcDamage(dmg);
+    if(arcade.combo >= 3 && arcade.combo % 3 === 0) arcHype('COMBO ×' + arcade.combo + '!', 'gold');
+    else if(frac > 0.85) arcHype('LIGHTNING! +' + pts, 'good small');
+    arcCheckFever();
+    if(arcade.rivalHp <= 0){ arcKO(); return true; }
+    return false;
+  }
+  function arcadeLineClear(){
+    if(!arcade || !arcade.active){ setTimeout(function(){ startRun(); }, 800); return; }
+    arcade.paused = true; arcStopTimer();
+    arcade.lines++;
+    const mult = arcMult();
+    const pts = Math.round(500 * mult), dmg = Math.round(25 * mult);
+    arcade.score += pts; arcade.rivalHp -= dmg;
+    if(arcade.fever === 0) arcade.power = Math.min(100, arcade.power + 20);
+    arcSfx('clear');
+    arcRenderHud(); arcDamage(dmg);
+    arcHype('LINE CLEAR! +' + pts, 'good');
+    arcCheckFever();
+    if(arcade.rivalHp <= 0){ setTimeout(arcKO, 700); return; }
+    setTimeout(function(){ if(arcade.active && currentMode() === 'arcade') startRun(); }, 1100);
+  }
+  function arcKO(){
+    arcade.paused = true; arcStopTimer();
+    arcade.kos++;
+    arcade.score += 1000 * (arcade.rivalIndex + 1);
+    const healed = arcade.hearts < 3;
+    arcade.hearts = Math.min(3, arcade.hearts + 1);
+    arcSfx('ko'); arcHype('K.O.!', 'ko'); arcShake();
+    arcRenderHud();
+    setTimeout(function(){
+      if(!arcade.active) return;
+      arcSetRival(arcade.rivalIndex + 1);
+      const r = arcRival(arcade.rivalIndex);
+      arcHype('ROUND ' + (arcade.rivalIndex+1) + ' — ' + r.emoji + ' ' + r.name + (healed ? '  +1 ❤️' : ''), 'gold small');
+      arcSfx('start');
+      setTimeout(function(){ if(arcade.active && currentMode() === 'arcade') startRun(); }, 1400);
+    }, 1600);
+  }
+  function arcadeWrong(isTimeout){
+    if(!arcade || !arcade.active) return;
+    arcade.paused = true; arcStopTimer();
+    arcade.wrong++; arcade.hearts--; arcade.combo = 0;
+    if(arcade.fever > 0){ arcade.fever = 0; arcSetFever(false); }
+    arcade.power = Math.max(0, arcade.power - 30);
+    arcSfx('wrong'); arcShake();
+    arcHype(isTimeout ? 'TIME!' : 'MISS!', 'bad');
+    arcRenderHud();
+    const legal = node ? legalMovesAt(node) : [];
+    const book = 'Book move: ' + (legal.join(', ') || '(none)');
+    if(arcade.hearts <= 0) showBanner('fail', 'Out of hearts!', book + ' — tap the board for results');
+    else showBanner('fail', (isTimeout ? 'Too slow! ' : 'Ouch! ') + arcade.hearts + ' ❤️ left', book + ' — tap the board to continue');
+  }
+  function arcTimeout(){
+    if(!arcade || !arcade.active || arcade.paused) return;
+    const legal = node ? legalMovesAt(node) : [];
+    const shapes = [];
+    for(const s of legal){ const sq = sanToSquares(s); if(sq) shapes.push({ orig: sq.from, dest: sq.to, brush: 'green' }); }
+    if(ground) ground.set({ movable: { color: 'none', dests: new Map() }, drawable: { autoShapes: shapes } });
+    waitingForClickAfterWrong = true;
+    if(wrongMoveOverlay) wrongMoveOverlay.style.display = 'block';
+    flashBoard('red');
+    arcadeWrong(true);
+  }
+  function arcadeAfterWrongTap(){
+    if(arcade && arcade.active && arcade.hearts <= 0){ arcGameOver(); return; }
+    startRun();
+  }
+
+  // ---- Screens ----
+  function arcShowOverlay(html){
+    if(!arcOverlayEl) return;
+    arcOverlayEl.innerHTML = html;
+    arcOverlayEl.style.display = 'flex';
+    const b = document.getElementById('arcPlayBtn');
+    if(b) b.onclick = arcNewGame;
+  }
+  function arcHideOverlay(){ if(arcOverlayEl){ arcOverlayEl.style.display = 'none'; arcOverlayEl.innerHTML = ''; } }
+  function arcShowTitle(){
+    const best = arcLoadBest();
+    arcShowOverlay(
+      '<div class="arc-title">SURVIVAL 2</div>' +
+      '<div class="arc-sub">Battle rivals with your opening book.<br>Book moves deal damage · finish lines for big hits<br>3 hearts · beat the clock · fill ⚡ for FEVER</div>' +
+      (best ? '<div class="arc-sub">Best: <b style="color:#ffd166">' + best.toLocaleString() + '</b> (' + arcRank(best) + ')</div>' : '') +
+      '<button class="arc-btn" id="arcPlayBtn">START</button>');
+  }
+  function arcGameOver(){
+    arcade.active = false; arcade.paused = true; arcade.over = true; arcStopTimer();
+    arcSetFever(false);
+    const best = arcLoadBest(), isBest = arcade.score > best;
+    if(isBest){ try{ localStorage.setItem(ARC_BEST_KEY, String(arcade.score)); }catch(e){} }
+    const total = arcade.correct + arcade.wrong;
+    const acc = total ? Math.round(arcade.correct / total * 100) : 0;
+    arcSfx('over');
+    arcShowOverlay(
+      '<div class="arc-title">GAME OVER</div>' +
+      '<div class="arc-rank">' + arcRank(arcade.score) + '</div>' +
+      (isBest ? '<div class="arc-newbest">★ NEW BEST ★</div>' : '<div class="arc-sub">Best: ' + best.toLocaleString() + '</div>') +
+      '<div class="arc-stats">' +
+        '<span>Score</span><b>' + arcade.score.toLocaleString() + '</b>' +
+        '<span>Rivals knocked out</span><b>' + arcade.kos + '</b>' +
+        '<span>Lines cleared</span><b>' + arcade.lines + '</b>' +
+        '<span>Best combo</span><b>' + arcade.bestCombo + '</b>' +
+        '<span>Accuracy</span><b>' + acc + '%</b>' +
+      '</div>' +
+      '<button class="arc-btn" id="arcPlayBtn">PLAY AGAIN</button>');
+  }
+  function arcNewGame(){
+    arcade = arcFreshState();
+    arcade.active = true;
+    arcSetRival(0);
+    arcHideOverlay();
+    arcSetFever(false);
+    arcSfx('start');
+    const r = arcRival(0);
+    arcHype('ROUND 1 — ' + r.emoji + ' ' + r.name, 'gold small');
+    startRun();
+  }
+  function arcadeOnNewLine(){
+    if(!arcade) return;
+    arcade.lineId++; arcade.timerKey = null;
+    if(arcade.active) arcade.paused = false;
+    arcRenderHud();
+  }
+  function arcadeSyncVisibility(mode){
+    if(!arcade) return;
+    const on = mode === 'arcade';
+    if(arcHudEl) arcHudEl.style.display = on ? 'block' : 'none';
+    if(!on){
+      if(arcade.active){ arcade.active = false; arcade.paused = true; arcStopTimer(); }
+      arcade.over = false;
+      if(arcOverlayEl && arcOverlayEl.style.display !== 'none') arcHideOverlay();
+      arcSetFever(false);
+      return;
+    }
+    if(!arcade.active && !arcade.over && arcOverlayEl && arcOverlayEl.style.display === 'none'){ arcRenderHud(); arcShowTitle(); }
+  }
+
+  // Shared "line finished" handler for Survival and Survival 2
+  function lineComplete(){
+    flashBoard('green');
+    if(currentMode() === 'arcade'){ arcadeLineClear(); return; }
+    score.streak = (score.streak||0) + 1; streakEl.textContent = String(score.streak);
+    saveScore(score);
+    showBanner('success', 'Line complete', 'Streak: ' + score.streak);
+    setTimeout(function(){ hideBanner(); startRun(); }, 800);
+  }
+
+  arcade = arcFreshState();
+  arcSetRival(0);
 
   // Open the current line (Survival: moves played so far; Explorer: moves up to the cursor) in Lichess analysis
   function lichessAnalysisUrl(moves, color){
