@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.404</title>
+<title>Chess Openings Survivor — v1.405</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -405,7 +405,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.404</h1>
+  <h1>Chess Openings Survivor — v1.405</h1>
   <div id="localFileBanner" style="display:none;background:#7d2020;color:#ffd6a6;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;font-weight:bold;text-align:center">
     ⚠️ You are using a local file — this may not be the latest version.
     <a href="https://ultraproro.github.io/chess-opening-book/" style="color:#fff;margin-left:8px;text-decoration:underline">Open live version ↗</a>
@@ -850,7 +850,10 @@ try{
             noteAccum+=' '+tok;
           }
         } else {
-          plies.push(cleanTok(tok));
+          // Accept conventional notation: drop "1." / "1..." tokens, strip attached numbers ("1.e4", "3...Bf5"), skip results
+          const t = tok.replace(/^\d+\.+/, '');
+          if(!t || /^(1-0|0-1|1\/2-1\/2|\*)$/.test(t)) continue;
+          plies.push(cleanTok(t));
         }
       }
       const validPlies=plies.filter(Boolean);
@@ -860,14 +863,48 @@ try{
     return out;
   }
 
-  // Rebuild a raw moves string from plies + notes map
+  // Rewrite a moves string in conventional numbered notation, keeping [notes] where they are.
+  // "e4 c6 d4 d5" -> "1. e4 c6 2. d4 d5"; a note before Black's move gives "1... c6".
+  function normalizeMovesStr(movesStr){
+    const toks = String(movesStr||'').split(/\s+/).filter(Boolean);
+    const out = []; let ply = 0, inNote = false, needNum = true;
+    for(const tok of toks){
+      if(inNote){ out.push(tok); if(tok.endsWith(']')){ inNote = false; needNum = true; } continue; }
+      if(tok.startsWith('[')){
+        out.push(tok);
+        if(tok.endsWith(']') && tok.length>1) needNum = true; else inNote = true;
+        continue;
+      }
+      const t = tok.replace(/^\d+\.+/, '');
+      if(!t || /^(1-0|0-1|1\/2-1\/2|\*)$/.test(t)) continue;
+      const n = Math.floor(ply/2) + 1;
+      if(ply % 2 === 0) out.push(n + '. ' + t);
+      else out.push((needNum ? n + '... ' : '') + t);
+      needNum = false; ply++;
+    }
+    return out.join(' ');
+  }
+  function normalizeBookText(text){
+    return String(text||'').split(/\r?\n/).map(function(raw){
+      const line = raw.trim();
+      if(!line || line.indexOf('|') < 0) return raw;
+      const parts = line.split('|').map(function(s){ return s.trim(); });
+      if(parts.length < 2) return raw;
+      const moves = normalizeMovesStr(parts[parts.length-1]);
+      return parts.slice(0, -1).join(' | ') + ' | ' + moves;
+    }).join('\n');
+  }
+  window.__normalizeBookText = normalizeBookText;
+
+  // Rebuild a moves string from plies + notes map (numbered notation)
   function buildMovesStr(plies, notes){
+    notes = notes || {};
     const parts=[];
     for(let i=0;i<=plies.length;i++){
       if(notes[i]) parts.push('['+notes[i]+']');
       if(i<plies.length) parts.push(plies[i]);
     }
-    return parts.join(' ');
+    return normalizeMovesStr(parts.join(' '));
   }
 
   // Given a side ('white'/'black'), opening, desc, return the raw line in the book textarea
@@ -1106,7 +1143,7 @@ try{
       return;
     }
     const desc=(recDescEl.value||'').trim();
-    const line = opening + ' | ' + desc + ' | ' + moves.join(' ');
+    const line = opening + ' | ' + desc + ' | ' + normalizeMovesStr(moves.join(' '));
     const target = (recSideEl.value==='white') ? bookWhiteEl : bookBlackEl;
     const prev = target.value.trim();
     target.value = prev ? (prev + "\n" + line) : line;
@@ -1293,7 +1330,7 @@ const LS_PREF='openingsSurvivorPrefs_v1';
 
 
   exportBookBtn && exportBookBtn.addEventListener('click', ()=>{
-    const content = "As White\n\n" + bookWhiteEl.value.trim() + "\n\nAs Black\n\n" + bookBlackEl.value.trim() + "\n";
+    const content = "As White\n\n" + normalizeBookText(bookWhiteEl.value).trim() + "\n\nAs Black\n\n" + normalizeBookText(bookBlackEl.value).trim() + "\n";
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -2140,8 +2177,8 @@ function piecesMapFromBoard(){
   // Called by the GitHub/cache loader: puts a new book into the textareas AND rebuilds
   // checklists + survival lines from it, so text, ticks and play all use the same book.
   window.__chessReloadBook = function(whiteText, blackText){
-    if(typeof whiteText==='string') bookWhiteEl.value = whiteText;
-    if(typeof blackText==='string') bookBlackEl.value = blackText;
+    if(typeof whiteText==='string') bookWhiteEl.value = normalizeBookText(whiteText);
+    if(typeof blackText==='string') bookBlackEl.value = normalizeBookText(blackText);
     saveBook({ white: bookWhiteEl.value, black: bookBlackEl.value, source:'saved', ts: Date.now() });
     if(bookSourceEl) bookSourceEl.textContent = 'Book source: GitHub';
     renderOpeningToggles(parseBook(bookWhiteEl.value), parseBook(bookBlackEl.value));
@@ -2225,8 +2262,8 @@ function piecesMapFromBoard(){
   (function(){
     const saved = loadBook();
     if(saved && saved.white && saved.black){
-      bookWhiteEl.value = saved.white;
-      bookBlackEl.value = saved.black;
+      bookWhiteEl.value = normalizeBookText(saved.white);
+      bookBlackEl.value = normalizeBookText(saved.black);
       if(bookSourceEl) bookSourceEl.textContent = 'Book source: saved';
     } else {
       if(bookSourceEl) bookSourceEl.textContent = 'Book source: defaults';
@@ -3133,8 +3170,9 @@ async function loadFromGithub(){
 }
 
 function exportCurrentBook(){
-  const w = document.getElementById("bookWhite") ? document.getElementById("bookWhite").value.trim() : "";
-  const b = document.getElementById("bookBlack") ? document.getElementById("bookBlack").value.trim() : "";
+  const norm = window.__normalizeBookText || function(x){ return x; };
+  const w = document.getElementById("bookWhite") ? norm(document.getElementById("bookWhite").value).trim() : "";
+  const b = document.getElementById("bookBlack") ? norm(document.getElementById("bookBlack").value).trim() : "";
   return "As White\n\n" + w + "\n\nAs Black\n\n" + b + "\n";
 }
 
