@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.405</title>
+<title>Chess Openings Survivor — v1.406</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -405,7 +405,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.405</h1>
+  <h1>Chess Openings Survivor — v1.406</h1>
   <div id="localFileBanner" style="display:none;background:#7d2020;color:#ffd6a6;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;font-weight:bold;text-align:center">
     ⚠️ You are using a local file — this may not be the latest version.
     <a href="https://ultraproro.github.io/chess-opening-book/" style="color:#fff;margin-left:8px;text-decoration:underline">Open live version ↗</a>
@@ -1645,13 +1645,13 @@ function piecesMapFromBoard(){
     if(currentMode()==='explorer') return;
     const oppColor = (chosenSide==='white'?'b':'w');
     if(sideToMove!==oppColor) return;
-    const legal = legalMovesAt(node);    if(!legal.length){ lineComplete(); return; }
-    const pick = legal[Math.floor(Math.random()*legal.length)];
+    const legal = legalMovesAt(node);    if(!legal.length || targetFinished()){ lineComplete(); return; }
+    const pick = chooseOpponentMove(legal);
     const ok = applySAN(pick);    if(!ok){ lineComplete(); return; }
     node = node.next.get(pick);
     syncGround();
     // Line ends on the opponent's move: count it as complete instead of waiting for a move that isn't in the book
-    if(!node || legalMovesAt(node).length===0){ setTimeout(()=>{ lineComplete(); }, 300); }
+    if(!node || legalMovesAt(node).length===0 || targetFinished()){ setTimeout(()=>{ lineComplete(); }, 300); }
   }
 
   function onAfter(from,to){
@@ -1695,6 +1695,7 @@ function piecesMapFromBoard(){
     if(!san) { syncGround(); return; }
     const legal = legalMovesAt(node);    if(!legal.includes(san)) {
       flashBoard('red');
+      recordLineResult(false);
       if(currentMode()!=='arcade'){ score.streak=0; streakEl.textContent='0'; saveScore(score); }
       // Reset board visually to pre-move state, keeping lastMove highlight (yellow squares)
       const shapes = [];
@@ -1717,11 +1718,116 @@ function piecesMapFromBoard(){
     }
     applySAN(san);
     node = node.next.get(san);
+    ensureRunMarked();
     const arcadeTookOver = (currentMode()==='arcade') ? arcadeCorrect(to) : false;
     syncGround();
     if(arcadeTookOver) return;
-    if(!node || legalMovesAt(node).length===0){ lineComplete(); return; }
+    if(!node || legalMovesAt(node).length===0 || targetFinished()){ lineComplete(); return; }
     setTimeout(()=>{ maybeOpponent(); },200);
+  }
+
+  // ---- Survival line selection: pick a whole line (weighted), steer the opponent toward it ----
+  // Weights per line are stored in localStorage. A run is counted once its first move is made.
+  var LINE_STATS_KEY = 'openingsLineStats_v1';
+  var survivalLines = [];      // enabled, valid lines for the current side
+  var survivalTarget = null;   // the line the opponent is steering toward
+  var survivalMarked = false;  // has this run been counted yet?
+  var survivalRecorded = false;
+  function loadLineStats(){ try{ return JSON.parse(localStorage.getItem(LINE_STATS_KEY)||'{}')||{}; }catch(e){ return {}; } }
+  function saveLineStats(s){ try{ localStorage.setItem(LINE_STATS_KEY, JSON.stringify(s)); }catch(e){} }
+  function lineKey(side, ln){ return side + '|' + ln.plies.join(' '); }
+  // Stored weight drifts back toward 1 by 5% for every run since the line was last seen
+  function lineBaseWeight(st, run){
+    if(!st) return 1;
+    const since = Math.max(0, run - (st.last || 0));
+    return 1 + ((st.w == null ? 1 : st.w) - 1) * Math.pow(0.95, since);
+  }
+  // Cooldown: never the very next run, then eased back in
+  function lineRecency(st, run){
+    if(!st || st.last == null) return 1;
+    const since = run - st.last;
+    if(since <= 0) return 0;
+    if(since === 1) return 0.25;
+    if(since === 2) return 0.6;
+    return 1;
+  }
+  function pickWeightedLine(cands, side){
+    if(!cands.length) return null;
+    if(cands.length === 1) return cands[0];
+    const stats = loadLineStats(), run = stats.__run || 0;
+    const ws = cands.map(function(ln){ const st = stats[lineKey(side, ln)]; return lineBaseWeight(st, run) * lineRecency(st, run); });
+    const total = ws.reduce(function(a,b){ return a + b; }, 0);
+    if(total <= 0){
+      // Everything is cooling down (very few lines ticked): uniform, avoiding the most recent line
+      let recent = null, recentRun = -1;
+      cands.forEach(function(ln){ const st = stats[lineKey(side, ln)]; if(st && st.last != null && st.last > recentRun){ recentRun = st.last; recent = ln; } });
+      const pool = cands.filter(function(ln){ return ln !== recent; });
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    let r = Math.random() * total;
+    for(let i = 0; i < cands.length; i++){ r -= ws[i]; if(r < 0) return cands[i]; }
+    return cands[cands.length - 1];
+  }
+  function stampLine(ln, run, stats){
+    const k = lineKey(chosenSide, ln);
+    const st = stats[k] || { w: 1 };
+    st.w = lineBaseWeight(st, run); st.last = run;
+    stats[k] = st;
+  }
+  function ensureRunMarked(){
+    if(survivalMarked || !survivalTarget) return;
+    survivalMarked = true;
+    const stats = loadLineStats();
+    stats.__run = (stats.__run || 0) + 1;
+    stampLine(survivalTarget, stats.__run, stats);
+    saveLineStats(stats);
+  }
+  function prefixMatches(ln){
+    if(!ln || ln.plies.length < playedMoves.length) return false;
+    for(let i = 0; i < playedMoves.length; i++){ if(ln.plies[i] !== playedMoves[i]) return false; }
+    return true;
+  }
+  function targetFinished(){ return !!survivalTarget && prefixMatches(survivalTarget) && survivalTarget.plies.length === playedMoves.length; }
+  function chooseOpponentMove(legal){
+    ensureRunMarked();
+    const onTrack = survivalTarget && prefixMatches(survivalTarget) && survivalTarget.plies.length > playedMoves.length
+                    && legal.indexOf(survivalTarget.plies[playedMoves.length]) >= 0;
+    if(!onTrack){
+      // You played a different book move: re-pick (weighted) among lines still reachable from here
+      const cands = survivalLines.filter(function(ln){ return ln.plies.length > playedMoves.length && prefixMatches(ln) && legal.indexOf(ln.plies[playedMoves.length]) >= 0; });
+      const nt = pickWeightedLine(cands, chosenSide);
+      if(nt){
+        survivalTarget = nt;
+        const stats = loadLineStats(); stampLine(nt, stats.__run || 0, stats); saveLineStats(stats);
+      }
+    }
+    if(survivalTarget && prefixMatches(survivalTarget) && survivalTarget.plies.length > playedMoves.length){
+      const mv = survivalTarget.plies[playedMoves.length];
+      if(legal.indexOf(mv) >= 0) return mv;
+    }
+    return legal[Math.floor(Math.random() * legal.length)];
+  }
+  function recordLineResult(correct){
+    if(survivalRecorded) return;
+    if(currentMode() !== 'survival' && currentMode() !== 'arcade') return;
+    // Credit the line that was actually played
+    if(correct){
+      const exact = survivalLines.find(function(ln){ return ln.plies.join(' ') === playedMoves.join(' '); });
+      if(exact) survivalTarget = exact;
+    } else if(!prefixMatches(survivalTarget)){
+      const any = survivalLines.find(prefixMatches);
+      if(any) survivalTarget = any;
+    }
+    if(!survivalTarget) return;
+    ensureRunMarked();
+    survivalRecorded = true;
+    const stats = loadLineStats(), run = stats.__run || 0;
+    const k = lineKey(chosenSide, survivalTarget);
+    const st = stats[k] || { w: 1, last: run };
+    const base = lineBaseWeight(st, run);
+    st.w = correct ? Math.max(0.15, base * 0.5) : Math.min(4, Math.max(1.6, base * 1.5));
+    st.last = run;
+    stats[k] = st; saveLineStats(stats);
   }
 
   function startRun(){
@@ -1766,6 +1872,12 @@ function piecesMapFromBoard(){
     openingName = lines.length ? lines[0].opening : '—';
     trie = buildTrieFor(lines);
     node = trie;
+    survivalLines = lines;
+    survivalTarget = null; survivalMarked = false; survivalRecorded = false;
+    if(currentMode()==='survival' || currentMode()==='arcade'){
+      survivalTarget = pickWeightedLine(lines, chosenSide);
+      if(survivalTarget) openingName = survivalTarget.opening;
+    }
     // For explorer, always start on white lines regardless of survival side
     const explorerRawLines = (currentMode()==='explorer') ? parsedW : lines;
     explorerLines = (currentMode()==='explorer') ? validateAndFilter('WHITE', parsedW) : lines;
@@ -2069,6 +2181,7 @@ function piecesMapFromBoard(){
     waitingForClickAfterWrong = true;
     if(wrongMoveOverlay) wrongMoveOverlay.style.display = 'block';
     flashBoard('red');
+    recordLineResult(false);
     arcadeWrong(true);
   }
   function arcadeAfterWrongTap(){
@@ -2148,10 +2261,12 @@ function piecesMapFromBoard(){
   // Shared "line finished" handler for Survival and Survival 2
   function lineComplete(){
     flashBoard('green');
+    recordLineResult(true);
     if(currentMode() === 'arcade'){ arcadeLineClear(); return; }
     score.streak = (score.streak||0) + 1; streakEl.textContent = String(score.streak);
     saveScore(score);
-    showBanner('success', 'Line complete', 'Streak: ' + score.streak);
+    const lineName = survivalTarget ? (survivalTarget.opening + (survivalTarget.desc ? ' — ' + survivalTarget.desc : '')) : '';
+    showBanner('success', 'Line complete' + (lineName ? ': ' + lineName : ''), 'Streak: ' + score.streak);
     setTimeout(function(){ hideBanner(); startRun(); }, 800);
   }
 
