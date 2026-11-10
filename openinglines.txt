@@ -19,19 +19,30 @@ Caro Kann | fast mate | 1. e4 c6 2. d4 d5 3. Bd3 Nf6 4. e5 Nfd7 5. e6 fxe6 6. Qh
 
 As Black
 
-Caro Kann | Advance | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6
-Caro Kann | panov fianchetto | 1. e4 c6 2. d4 d5 3. exd5 cxd5 4. c4 Nf6 5. Nc3 g6 6. cxd5 Bg7
-Caro Kann | Nc3 | 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 5. Nxf6 exf6
 KID |  | 1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 Bg4 6. Be2 O-O 7. Be3 Nbd7 8. O-O e5
-Caro Kann | Bayonet | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. g4 Be4 5. f3 Bg6
-Caro Kann | E5 to get bishop out | 1. e4 c6 2. d4 d5 3. exd5 cxd5 4. Bd3 Nc6 5. c3 Nf6 6. h3 e5
-Caro Kann | Short 1 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6 5. Bd3 Bxd3 6. Qxd3 c5
-Caro Kann | Short 2 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6 5. Be2 c5
-Caro Kann | Short 3 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6 5. Nc3 c5
-Caro Kann | Short 4 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6 5. c3 c5
-Caro Kann | AdvaNce 2 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Bd3 Bxd3 5. Qxd3 e6
-Caro Kann | Tal 1 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. h4 h5 5. Bd3 Bxd3 6. Qxd3 e6 7. Bg5 Qb6 8. Nd2 c5 9. c4 Qxb2 10. Rb1 Qxd4
-Caro Kann | Tal 2 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. h4 h5 5. Bd3 Bxd3 6. Qxd3 e6 7. Bg5 Qb6 8. Nd2 c5 9. c4 Qxb2 10. Rd1 Nc6
-Caro Kann | Tal 3 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. h4 h5 5. Bd3 Bxd3 6. Qxd3 e6 7. Bg5 Qb6 8. Nd2 c5 9. c3 cxd4
-Caro Kann | Tal 4 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. h4 h5 5. Bd3 Bxd3 6. Qxd3 e6 7. Nf3 c5
-Caro Kann | Van der Wiel | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nc3 e6 5. Nf3 Bb4
+Caro Kann | Advance - Short 1 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6 5. Bd3 Bxd3 6. Qxd3 c5
+Caro Kann | Advance - Short 2 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6 5. Be2 c5
+Caro Kann | Advance - Short 3 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6 5. Nc3 c5
+Caro Kann | Advance - Short 4 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6 5. c3 c5
+Caro Kann | Advance - Tal 1 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. h4 h5 5. Bd3 Bxd3 6. Qxd3 e6 7. Bg5 Qb6 8. Nd2 c5 9. c4 Qxb2 10. Rb1 Qxd4
+Caro Kann | Advance - Tal 2 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. h4 h5 5. Bd3 Bxd3 6. Qxd3 e6 7. Bg5 Qb6 8. Nd2 c5 9. c4 Qxb2 10. Rd1 Nc6
+Caro Kann | Advance - Tal 3 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. h4 h5 5. Bd3 Bxd3 6. Qxd3 e6 7. Bg5 Qb6 8. Nd2 c5 9. c3 cxd4
+Caro Kann | Advance - Tal 4 | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. h4 h5 5. Bd3 Bxd3 6. Qxd3 e6 7. Nf3 c5
+Caro Kann | Tartakower 1 | 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 5. Nxf6+ exf6 6. c3 Bd6
+Caro Kann | Tartakower 2 | 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 5. Nxf6+ exf6 6. Nf3 Bd6
+Caro Kann | Tartakower: Forgacs | 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 5. Nxf6+ exf6 6. Bc4 Bd6
+Caro Kann | Alekhine Gambit | 1. e4 c6 2. Nc3 d5 3. d4 dxe4 4. Nxe4 Nf6 5. Bd3 Qxd4 6. Nf3 Qd8
+Caro Kann | Alien Gambit | 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 5. Ng5 c5
+Caro Kann | Rasa–Studier Gambit | 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. f3 exf3 5. Nxf3 Nf6 6. Bc4 Bf5 7. O-O e6
+Caro Kann | Von Hennig Gambit | 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Bc4 Bf5
+Caro Kann | Bayonet | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. g4 Be4 5. f3 Bg6 6. h4 h5
+Caro Kann | Van der Wiel Attack | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nc3 e6 5. g4 Bg6 6. Nge2 c5 7. h4 h5
+Caro Kann | Advance bishop exchange | 1. e4 c6 2. d4 d5 3. e5 Bf5 4. Bd3 Bxd3 5. Qxd3 e6
+Caro Kann | Exchange (Rubinstein Attack) | 1. e4 c6 2. d4 d5 3. exd5 cxd5 4. Bd3 Nc6 5. c3 Qc7
+Caro Kann | Exchange, 4.Nf3 | 1. e4 c6 2. d4 d5 3. exd5 cxd5 4. Nf3 Nc6 5. Bb5 Bg4
+Caro Kann | Panov, Fianchetto 1 | 1. e4 c6 2. d4 d5 3. exd5 cxd5 4. c4 Nf6 5. Nc3 g6 6. Qb3 Bg7 7. cxd5 O-O
+Caro Kann | Panov, Fianchetto 2 | 1. e4 c6 2. d4 d5 3. exd5 cxd5 4. c4 Nf6 5. Nc3 g6 6. cxd5 Bg7
+Caro Kann | Fantasy | 1. e4 c6 2. d4 d5 3. f3 e6 4. Nc3 Nf6 5. Bg5
+Caro Kann | Mieses Attack: Landau Gambit | 1. e4 c6 2. d4 d5 3. Bd3 dxe4 4. Bxe4 Nf6 5. Bf3 Bf5
+Caro Kann | Mieses Gambit | 1. e4 c6 2. d4 d5 3. Be3 dxe4
+Caro Kann | Euew Attack | 1. e4 c6 2. b3 d5 3. Bb2 dxe4 4. Nc3 Nf6 5. Nge2 Bf5 6. Ng3
