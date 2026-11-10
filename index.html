@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Chess Openings">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Chess Openings Survivor — v1.406</title>
+<title>Chess Openings Survivor — v1.407</title>
 <style>
 :root{--panel:#171a33;--card:#1c2142;--line:#2a2f5f;--text:#eef2ff;--muted:#9fb1ff;}
 *{box-sizing:border-box}
@@ -405,7 +405,7 @@ piece.fading {
 <body>
 
 <header>
-  <h1>Chess Openings Survivor — v1.406</h1>
+  <h1>Chess Openings Survivor — v1.407</h1>
   <div id="localFileBanner" style="display:none;background:#7d2020;color:#ffd6a6;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;font-weight:bold;text-align:center">
     ⚠️ You are using a local file — this may not be the latest version.
     <a href="https://ultraproro.github.io/chess-opening-book/" style="color:#fff;margin-left:8px;text-decoration:underline">Open live version ↗</a>
@@ -444,6 +444,7 @@ piece.fading {
       <button id="explorerFlip" class="secondary" style="display:none">Flip board</button>
       <button id="saveVariationBtn" class="secondary" style="display:none">Save current variation</button>
       <button id="openLichessBtn" class="secondary" title="Open the current position/line in Lichess analysis">Open in Lichess ↗</button>
+      <button id="wrongExplorerBtn" class="secondary" style="display:none" title="Open this line in Explorer at the position you went wrong">Open in Explorer</button>
     </div>
     <div id="positionCommentBox" style="margin-top:10px;display:none">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -1618,6 +1619,7 @@ function piecesMapFromBoard(){
     }
     ground.set({ orientation: currentOrientation(), pieces: piecesMapFromBoard(), selectable: { enabled: true }, turnColor: (sideToMove==='w'?'white':'black') });
     if(currentMode()==='explorer'){
+      if(explorerArrowCursor != null && explorerCursor !== explorerArrowCursor){ ground.set({ drawable: { autoShapes: [] } }); explorerArrowCursor = null; }
       turnEl.textContent = explorerDiverged
         ? ('Explorer — new variation (' + (sideToMove==='w'?'White':'Black') + ' to move, ' + explorerCursor + '/' + explorerMoves.length + ')')
         : ('Explorer — ' + (sideToMove==='w'?'White':'Black') + ' to move (' + explorerCursor + '/' + explorerMoves.length + ')');
@@ -1710,7 +1712,9 @@ function piecesMapFromBoard(){
         movable: { color: 'none', dests: new Map() },
         drawable: { autoShapes: shapes }
       });
-      showBanner('fail','Wrong move — tap board to continue','Book: '+(legal.join(', ')||'(none)'));
+      showBanner('fail','Wrong move — tap board to continue', (currentLineName() ? currentLineName() + ' · ' : '') + 'Book: '+(legal.join(', ')||'(none)'));
+      const wrongExplorerBtn = document.getElementById('wrongExplorerBtn');
+      if(wrongExplorerBtn && currentMode()==='survival') wrongExplorerBtn.style.display = 'inline-block';
       waitingForClickAfterWrong = true;
       if(wrongMoveOverlay) wrongMoveOverlay.style.display = 'block';
       if(currentMode()==='arcade') arcadeWrong(false);
@@ -1831,6 +1835,8 @@ function piecesMapFromBoard(){
   }
 
   function startRun(){
+    const wrongExplorerBtnEl = document.getElementById('wrongExplorerBtn');
+    if(wrongExplorerBtnEl) wrongExplorerBtnEl.style.display = 'none';
     if(currentMode()==='review' || currentMode()==='analysis'){ updateModeButtons(); return; }
     resetPosition();
 
@@ -2168,7 +2174,7 @@ function piecesMapFromBoard(){
     arcHype(isTimeout ? 'TIME!' : 'MISS!', 'bad');
     arcRenderHud();
     const legal = node ? legalMovesAt(node) : [];
-    const book = 'Book move: ' + (legal.join(', ') || '(none)');
+    const book = (currentLineName() ? currentLineName() + ' · ' : '') + 'Book move: ' + (legal.join(', ') || '(none)');
     if(arcade.hearts <= 0) showBanner('fail', 'Out of hearts!', book + ' — tap the board for results');
     else showBanner('fail', (isTimeout ? 'Too slow! ' : 'Ouch! ') + arcade.hearts + ' ❤️ left', book + ' — tap the board to continue');
   }
@@ -2257,6 +2263,55 @@ function piecesMapFromBoard(){
     }
     if(!arcade.active && !arcade.over && arcOverlayEl && arcOverlayEl.style.display === 'none'){ arcRenderHud(); arcShowTitle(); }
   }
+
+  function currentLineName(){
+    return survivalTarget ? (survivalTarget.opening + (survivalTarget.desc ? ' — ' + survivalTarget.desc : '')) : '';
+  }
+
+  // From the wrong-move screen: open the line in Explorer at the position you went wrong
+  var explorerArrowCursor = null;
+  function openWrongInExplorer(){
+    // Capture everything first: switching mode restarts the board
+    const ln = survivalTarget, side = chosenSide;
+    const movesSoFar = playedMoves.slice();
+    const missed = node ? legalMovesAt(node) : [];
+    if(wrongMoveOverlay) wrongMoveOverlay.style.display = 'none';
+    waitingForClickAfterWrong = false;
+    if(ground) ground.set({ drawable: { autoShapes: [] } });
+    hideBanner();
+    if(modeEl){ modeEl.value = 'explorer'; modeEl.dispatchEvent(new Event('change')); }
+
+    // Put Explorer on the side of the line you were playing
+    explorerSide = side; explorerFlipped = false;
+    explorerLines = validateAndFilter(side.toUpperCase(), parseBook(side === 'white' ? bookWhiteEl.value : bookBlackEl.value));
+    trie = buildTrieFor(explorerLines);
+    populateExplorerLinePicker();
+    if(explorerFlipBtn) explorerFlipBtn.textContent = explorerSide === 'white' ? 'Flip → Black' : 'Flip → White';
+
+    const target = ln ? explorerLines.find(function(l){ return l.plies.join(' ') === ln.plies.join(' '); }) : null;
+    if(target){
+      explorerMoves = target.plies.slice();
+      if(explorerLinePickerEl) explorerLinePickerEl.value = target.plies.join(' ');
+    } else {
+      explorerMoves = movesSoFar.slice();
+    }
+    explorerCursor = Math.min(movesSoFar.length, explorerMoves.length);
+    rebuildExplorerState();
+    if(ground) ground.set({ orientation: currentOrientation() });
+    if(typeof renderCoords === 'function') renderCoords();
+    syncGround();
+    updateExplorerNavVisibility(); updateSaveVariationVisibility(); updateCurrentLineBox();
+    if(typeof updateCommentBox === 'function') updateCommentBox();
+
+    // Green arrow on the book move you missed
+    const shapes = [];
+    missed.forEach(function(s){ const sq = sanToSquares(s); if(sq) shapes.push({ orig: sq.from, dest: sq.to, brush: 'green' }); });
+    if(ground && shapes.length){ ground.set({ drawable: { autoShapes: shapes } }); explorerArrowCursor = explorerCursor; }
+    showBanner('success', currentLineNameFor(target || ln), 'Position where you went wrong — book move: ' + (missed.join(', ') || '(none)'));
+  }
+  function currentLineNameFor(l){ return l ? (l.opening + (l.desc ? ' — ' + l.desc : '')) : 'Explorer'; }
+  const wrongExplorerBtnListen = document.getElementById('wrongExplorerBtn');
+  wrongExplorerBtnListen && wrongExplorerBtnListen.addEventListener('click', openWrongInExplorer);
 
   // Shared "line finished" handler for Survival and Survival 2
   function lineComplete(){
